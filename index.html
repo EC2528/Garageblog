@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="GarageLog: Fahrzeuge, Wartungen und Kosten im Blick behalten. Kostenlos und ohne Konto.">
+<meta name="theme-color" content="#0b1222">
+<title>GarageLog – Deine Fahrzeuge. Dein Überblick.</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1222;--panel:#111d31;--panel2:#182740;--input:#0c172a;--line:#293b56;--white:#e8eef8;--muted:#96a7c2;--mint:#65e2b0;--mint2:#76f2c4;--danger:#fa7e92}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse 68% 25% at 100% 0%,#142c41 0,transparent 80%),var(--bg);color:var(--white);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;line-height:1.45}
+main{max-width:1120px;margin:0 auto;padding:14px 22px 54px}header,.header-left{display:flex;align-items:center;gap:11px}header{justify-content:space-between;gap:20px;flex-wrap:wrap}header strong{font-size:1.1rem}.logo{display:grid;place-items:center;background:var(--mint);width:34px;height:34px;border-radius:12px;color:#07342a;font-weight:900}.header-tag{border:1px solid var(--line);padding:6px 12px;border-radius:30px;color:var(--muted);font-size:.72rem}
+.hero{padding:34px 0 22px}.hero h1{font-size:clamp(2.15rem,5vw,3.55rem);letter-spacing:-.05em;line-height:1.08;margin:0 0 13px}.hero h1 span{color:var(--mint)}.hero p{color:var(--muted);max-width:550px;margin:0;font-size:.93rem}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin-bottom:24px}.stat,.panel,.vehicle,.record{background:linear-gradient(145deg,#17243a,#111b2f);border:1px solid var(--line);border-radius:16px}.stat{padding:18px}.stat small{display:block;color:var(--muted);font-size:.76rem}.stat strong{font-size:1.55rem;display:block;margin-top:6px;font-variant-numeric:tabular-nums}
+.forms{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start}.panel{padding:19px}.panel h2,.section-head h2{margin:0;font-size:1.11rem;letter-spacing:-.015em}.desc{font-size:.79rem;color:var(--muted);margin:4px 0 14px}label{display:block;font-size:.75rem;color:#c2cde0;font-weight:700;margin:0 0 5px}.field{min-width:0}.field-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.field-row+.field,.field+.field-row,.field+.field{margin-top:11px}
+input,select,textarea{width:100%;min-width:0;border:1px solid var(--line);background:var(--input);color:var(--white);border-radius:9px;padding:11px 12px;font:inherit;font-size:.88rem;outline:none}input:focus,select:focus,textarea:focus{border-color:var(--mint);box-shadow:0 0 0 2px #65e2b02b}input::placeholder,textarea::placeholder{color:#788ca8}textarea{resize:vertical;min-height:60px}button{cursor:pointer;touch-action:manipulation;font:inherit}button:focus-visible{outline:2px solid var(--mint);outline-offset:3px}.primary{border:0;background:var(--mint);color:#062e23;font-weight:800;border-radius:9px;padding:11px 16px;width:100%;margin-top:14px}.primary:hover{background:var(--mint2)}.small-btn{border:1px solid var(--line);color:#c5d3e8;border-radius:8px;padding:7px 10px;background:#24354d;font-size:.73rem;font-weight:600}.small-btn:hover{background:#334966}.small-btn.danger{color:#f7a9b4}.small-btn.danger:hover{border-color:#ad4152}
+.section{margin-top:26px}.section-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:13px}.section-head small{color:var(--muted);font-size:.75rem}.garage-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.vehicle{padding:17px}.vehicle h3{font-size:1rem;margin:0 0 6px;overflow-wrap:anywhere}.subtitle{font-size:.72rem;color:var(--muted)}.vehicle .distance{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:8px 0 14px}.vehicle .km{font-size:1.25rem;font-weight:800;font-variant-numeric:tabular-nums}.pill{background:#1d3342;color:var(--mint);border-radius:22px;padding:5px 9px;font-size:.72rem}.pill.due{background:#412732;color:#ffa0ad}.pill.neutral{color:#b5c2d4;background:#28364a}.actions{display:flex;flex-wrap:wrap;gap:6px}
+.records{display:grid;gap:10px}.record{padding:15px;display:flex;align-items:center;justify-content:space-between;gap:12px}.record h3{font-size:.89rem;margin:0 0 4px;overflow-wrap:anywhere}.record p{margin:0;font-size:.76rem;color:var(--muted);overflow-wrap:anywhere}.record .note{margin-top:4px}.record-right{text-align:right;flex-shrink:0}.record-right strong{display:block;font-size:.87rem;margin-bottom:6px;font-variant-numeric:tabular-nums}
+.backup .actions{margin-top:20px}.fineprint,.empty,.status{color:var(--muted);font-size:.76rem}.fineprint{margin:12px 0 0}.empty{padding:20px;border:1px dashed var(--line);border-radius:12px}.status{min-height:1.4em;margin-top:8px;color:var(--mint)}footer{color:#8190aa;border-top:1px solid var(--line);margin-top:27px;padding-top:17px;font-size:.73rem}.warn{color:#ffc4a3}
+@media(max-width:740px){main{padding:14px 14px 36px}.hero{padding:30px 0 20px}.forms,.garage-grid{grid-template-columns:1fr}.stat{padding:13px}.stat strong{font-size:1.18rem}.stats{gap:7px}.header-tag{display:none}}@media(max-width:370px){.stats{grid-template-columns:1fr}.field-row{grid-template-columns:1fr}.record{align-items:start}.panel{padding:15px}}
+</style>
+</head>
+<body>
+<main>
+<header><div class="header-left"><span class="logo">G</span><strong>GarageLog</strong></div><div class="header-tag">Dein kostenloses Werkstatt-Tool</div></header>
+<section class="hero"><h1>Deine Fahrzeuge.<br><span>Dein Überblick.</span></h1><p>Fahrzeuge verwalten, Wartungen dokumentieren, Ölservice im Blick behalten. Läuft direkt in deinem Browser – ohne Konto oder Server.</p></section>
+<section class="stats" aria-label="Statistik"><div class="stat"><small>Fahrzeuge</small><strong id="vehicleCount">0</strong></div><div class="stat"><small>Erfasste Wartungen</small><strong id="serviceCount">0</strong></div><div class="stat"><small>Dokumentierte Kosten</small><strong id="costSum">0,00 €</strong></div></section>
+<div class="forms">
+<section class="panel"><h2>Fahrzeug hinzufügen</h2><p class="desc">Beginne mit einem beliebigen Fahrzeug.</p>
+<form id="vehicleForm"><div class="field"><label for="vehicleName">Fahrzeugname</label><input id="vehicleName" name="name" placeholder="z. B. Polo 9N3 1.9 TDI" maxlength="100" required></div><div class="field-row" style="margin-top:11px"><div class="field"><label for="vehicleKm">Kilometerstand</label><input id="vehicleKm" type="number" name="km" placeholder="z. B. 322000" min="0" max="99999999" step="1" required></div><div class="field"><label for="vehicleNext">Nächster Ölwechsel bei km (optional)</label><input id="vehicleNext" type="number" name="next" placeholder="z. B. 330000" min="0" max="99999999" step="1"></div></div><button class="primary" type="submit">+ Fahrzeug speichern</button></form></section>
+<section class="panel"><h2>Wartung eintragen</h2><p class="desc">Halte Arbeiten und Kosten dauerhaft fest.</p>
+<form id="serviceForm"><div class="field"><label for="serviceVehicle">Fahrzeug</label><select id="serviceVehicle" required><option value="">Erst Fahrzeug hinzufügen</option></select></div><div class="field-row" style="margin-top:11px"><div class="field"><label for="serviceDate">Datum</label><input id="serviceDate" type="date" required></div><div class="field"><label for="serviceKm">Kilometerstand</label><input id="serviceKm" type="number" min="0" max="99999999" step="1" placeholder="z. B. 322000" required></div></div><div class="field-row" style="margin-top:11px"><div class="field"><label for="serviceType">Arbeit</label><select id="serviceType"><option>Ölwechsel</option><option>Inspektion</option><option>Bremsen</option><option>Reifen</option><option>HU / AU</option><option>Reparatur</option><option>Sonstiges</option></select></div><div class="field"><label for="serviceCost">Kosten in €</label><input id="serviceCost" type="number" min="0" max="99999999" step="0.01" inputmode="decimal" placeholder="0,00" required></div></div><div class="field" style="margin-top:11px"><label for="serviceNote">Notiz (optional)</label><textarea id="serviceNote" maxlength="1000" placeholder="z. B. Öl nach MB 229.52; Filter ersetzt"></textarea></div><button class="primary" type="submit">+ Wartung speichern</button></form></section>
+</div>
+<section class="section"><div class="section-head"><h2>Meine Garage</h2><small>Kilometerstände &amp; Ölservice</small></div><div id="garage" class="garage-grid"><p class="empty">Noch keine Fahrzeuge vorhanden.</p></div></section>
+<section class="section"><div class="section-head"><h2>Wartungsverlauf</h2><small>Neueste zuerst</small></div><div id="history" class="records"><p class="empty">Noch keine Wartungen vorhanden.</p></div></section>
+<section class="section backup"><div class="section-head"><h2>Datensicherung</h2><small>Ohne Cloud</small></div><div class="actions"><button class="small-btn" id="exportBtn" type="button">Backup herunterladen (JSON)</button><button class="small-btn" id="importBtn" type="button">Backup importieren</button><button class="small-btn danger" id="clearBtn" type="button">Alle Daten löschen</button><input id="fileInput" type="file" accept=".json,application/json" hidden></div><p class="fineprint">Wichtig: Daten werden nur in diesem Browser auf diesem Gerät gespeichert und nicht automatisch zwischen Handy und PC synchronisiert. Erstelle regelmäßig ein Backup. Im privaten Modus oder beim Löschen von Browserdaten können Einträge verschwinden.</p><div class="status" id="status" aria-live="polite"></div></section>
+<footer>GarageLog · Beispielprojekt für GitHub Pages · Keine Registrierung · Keine automatische Übermittlung deiner Fahrzeugdaten an einen Server durch diese App</footer>
+</main>
+<script>
+(()=>{
+'use strict';
+const KEY='garagelog-v1';
+const $=id=>document.getElementById(id);
+const nf=new Intl.NumberFormat('de-DE',{maximumFractionDigits:0});
+const eur=new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR'});
+let db={vehicles:[],services:[]};
+let storageAvailable=true;
+function say(message,warning=false){const node=$('status');node.textContent=message;node.classList.toggle('warn',warning);}
+function safeGet(){try{const value=localStorage.getItem(KEY);return value?JSON.parse(value):null;}catch(e){storageAvailable=false;return null;}}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(db));storageAvailable=true;}catch(e){storageAvailable=false;say('Browser-Speicherung nicht verfügbar. Bitte Daten vor dem Schließen exportieren.',true);}}
+function id(){return (globalThis.crypto&&crypto.randomUUID)?crypto.randomUUID():`${Date.now()}-${Math.random().toString(36).slice(2)}`;}
+function validInt(value){return Number.isSafeInteger(value)&&value>=0&&value<=99999999;}
+function validMoney(value){return typeof value==='number'&&Number.isFinite(value)&&value>=0&&value<=99999999;}
+function validDate(value){if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(value))return false;const d=new Date(value+'T12:00:00');return !Number.isNaN(d.getTime())&&`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`===value;}
+function checkedData(data){
+ if(!data||!Array.isArray(data.vehicles)||!Array.isArray(data.services)||data.vehicles.length>500||data.services.length>20000)throw Error('Ungültige Backup-Struktur oder zu viele Einträge.');
+ const vehicles=data.vehicles.map(v=>{if(!v||typeof v.id!=='string'||v.id.length>100||typeof v.name!=='string'||!v.name.trim()||v.name.length>100||!validInt(v.km)||(v.next!==null&&!validInt(v.next)))throw Error('Fehlerhafte Fahrzeugdaten.');return{id:v.id,name:v.name,km:v.km,next:v.next};});
+ const ids=new Set(vehicles.map(v=>v.id));if(ids.size!==vehicles.length)throw Error('Doppelte Fahrzeugkennungen.');
+ const services=data.services.map(s=>{if(!s||typeof s.id!=='string'||s.id.length>100||typeof s.vehicleId!=='string'||!ids.has(s.vehicleId)||!validDate(s.date)||!validInt(s.km)||typeof s.type!=='string'||!s.type.trim()||s.type.length>100||!validMoney(s.cost)||typeof s.note!=='string'||s.note.length>1000)throw Error('Fehlerhafte Wartungsdaten.');return{id:s.id,vehicleId:s.vehicleId,date:s.date,km:s.km,type:s.type,cost:s.cost,note:s.note};});
+ if(new Set(services.map(s=>s.id)).size!==services.length)throw Error('Doppelte Wartungskennungen.');return{vehicles,services};
+}
+function make(tag,cls,content){const node=document.createElement(tag);if(cls)node.className=cls;if(content!==undefined)node.textContent=String(content);return node;}
+function button(label,action,danger=false){const b=make('button','small-btn'+(danger?' danger':''),label);b.type='button';b.addEventListener('click',action);return b;}
+function formatDate(date){return new Intl.DateTimeFormat('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'}).format(new Date(date+'T12:00:00'));}
+function emptyPlace(node,message){node.replaceChildren(make('p','empty',message));}
+function render(){
+ $('vehicleCount').textContent=nf.format(db.vehicles.length);
+ $('serviceCount').textContent=nf.format(db.services.length);
+ $('costSum').textContent=eur.format(db.services.reduce((sum,s)=>sum+s.cost,0));
+ const selected=$('serviceVehicle').value;
+ $('serviceVehicle').replaceChildren();
+ if(!db.vehicles.length){const o=new Option('Erst Fahrzeug hinzufügen','');$('serviceVehicle').add(o);} else db.vehicles.forEach(v=>$('serviceVehicle').add(new Option(v.name,v.id)));
+ if(db.vehicles.some(v=>v.id===selected))$('serviceVehicle').value=selected;
+ $('garage').replaceChildren();
+ if(!db.vehicles.length)emptyPlace($('garage'),'Noch keine Fahrzeuge vorhanden.');
+ db.vehicles.forEach(v=>{
+  const card=make('article','vehicle');card.append(make('h3','',v.name),make('div','subtitle','Aktueller Kilometerstand'));
+  const dist=make('div','distance');dist.append(make('strong','km',nf.format(v.km)+' km'));
+  if(v.next===null)dist.append(make('span','pill neutral','Öltermin nicht erfasst'));
+  else{const left=v.next-v.km;dist.append(make('span','pill'+(left<=0?' due':''),left>0?nf.format(left)+' km bis Ölwechsel':left===0?'Ölwechsel jetzt fällig':nf.format(-left)+' km überfällig'));}
+  card.append(dist);const actions=make('div','actions');
+  actions.append(button('km aktualisieren',()=>{const answer=prompt('Neuer Kilometerstand für '+v.name+':',String(v.km));if(answer===null)return;const km=Number(answer.trim());if(!/^\d+$/.test(answer.trim())||!validInt(km)){alert('Bitte einen gültigen Kilometerstand eingeben.');return;}v.km=km;persist();render();}));
+  actions.append(button('Öltermin ändern',()=>{const answer=prompt('Nächster Ölwechsel bei km (leer = entfernen):',v.next===null?'':String(v.next));if(answer===null)return;const raw=answer.trim();if(raw===''){v.next=null;}else{const next=Number(raw);if(!/^\d+$/.test(raw)||!validInt(next)){alert('Bitte einen gültigen Kilometerstand eingeben.');return;}v.next=next;}persist();render();}));
+  actions.append(button('Löschen',()=>{if(!confirm(`"${v.name}" und alle zugehörigen Wartungen wirklich löschen?`))return;db.services=db.services.filter(s=>s.vehicleId!==v.id);db.vehicles=db.vehicles.filter(item=>item.id!==v.id);persist();render();},true));card.append(actions);$('garage').append(card);
+ });
+ $('history').replaceChildren();
+ if(!db.services.length)emptyPlace($('history'),'Noch keine Wartungen vorhanden.');
+ [...db.services].sort((a,b)=>b.date.localeCompare(a.date)).forEach(s=>{
+  const vehicle=db.vehicles.find(v=>v.id===s.vehicleId);const card=make('article','record');const left=make('div');left.append(make('h3','',s.type+' · '+(vehicle?vehicle.name:'Unbekanntes Fahrzeug')),make('p','',formatDate(s.date)+' · '+nf.format(s.km)+' km'));if(s.note)left.append(make('p','note',s.note));
+  const right=make('div','record-right');right.append(make('strong','',eur.format(s.cost)),button('Löschen',()=>{if(!confirm('Diesen Wartungseintrag wirklich löschen?'))return;db.services=db.services.filter(item=>item.id!==s.id);persist();render();},true));card.append(left,right);$('history').append(card);
+ });
+}
+function todayISO(){const now=new Date();return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;}
+$('serviceDate').value=todayISO();
+$('vehicleForm').addEventListener('submit',event=>{
+ event.preventDefault();const name=$('vehicleName').value.trim(),km=Number($('vehicleKm').value),rawNext=$('vehicleNext').value.trim(),next=rawNext===''?null:Number(rawNext);
+ if(!name||!validInt(km)||(next!==null&&!validInt(next))){alert('Bitte gültige Fahrzeugdaten eingeben.');return;}
+ db.vehicles.push({id:id(),name,km,next});persist();event.target.reset();render();say('Fahrzeug gespeichert.');
+});
+$('serviceForm').addEventListener('submit',event=>{
+ event.preventDefault();const vehicleId=$('serviceVehicle').value,date=$('serviceDate').value,km=Number($('serviceKm').value),type=$('serviceType').value,cost=Number($('serviceCost').value),note=$('serviceNote').value.trim();
+ if(!db.vehicles.some(v=>v.id===vehicleId)||!validDate(date)||!validInt(km)||!validMoney(cost)){alert('Bitte gültige Wartungsdaten eingeben.');return;}
+ db.services.push({id:id(),vehicleId,date,km,type,cost,note});persist();event.target.reset();$('serviceDate').value=todayISO();render();say('Wartung gespeichert.');
+});
+$('exportBtn').addEventListener('click',()=>{
+ const file=new Blob([JSON.stringify({version:1,exportedAt:new Date().toISOString(),...db},null,2)],{type:'application/json'}),url=URL.createObjectURL(file),a=document.createElement('a');a.href=url;a.download='garagelog-backup-'+todayISO()+'.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);say('Backup erstellt. Bewahre die JSON-Datei sicher auf.');
+});
+$('importBtn').addEventListener('click',()=>$('fileInput').click());
+$('fileInput').addEventListener('change',async event=>{
+ const file=event.target.files?.[0];if(!file)return;event.target.value='';if(file.size>3*1024*1024){say('Datei zu groß (max. 3 MB).',true);return;}
+ try{const loaded=checkedData(JSON.parse(await file.text()));if(!confirm('Import ersetzt alle aktuellen Fahrzeug- und Wartungsdaten. Fortfahren?'))return;db=loaded;persist();render();say('Backup erfolgreich importiert.');}catch(e){say('Import fehlgeschlagen: '+e.message,true);}
+});
+$('clearBtn').addEventListener('click',()=>{if(!confirm('Wirklich ALLE Fahrzeuge und Wartungen löschen? Bitte vorher Backup herunterladen.'))return;if(!confirm('Letzte Bestätigung: Alle Daten endgültig löschen?'))return;db={vehicles:[],services:[]};persist();render();say('Alle Daten gelöscht.');});
+const saved=safeGet();if(saved){try{db=checkedData(saved);}catch(e){say('Gespeicherte Daten konnten nicht gelesen werden. Sie wurden nicht überschrieben.',true);storageAvailable=false;}}
+render();if(!storageAvailable)say('Lokaler Speicher nicht verfügbar oder vorhandene Daten fehlerhaft. Vor dem Schließen Backup exportieren.',true);
+})();
+</script>
+</body>
+</html>
