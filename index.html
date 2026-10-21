@@ -18,6 +18,22 @@ input,select,textarea{width:100%;min-width:0;border:1px solid var(--line);backgr
 .records{display:grid;gap:10px}.record{padding:15px;display:flex;align-items:center;justify-content:space-between;gap:12px}.record h3{font-size:.89rem;margin:0 0 4px;overflow-wrap:anywhere}.record p{margin:0;font-size:.76rem;color:var(--muted);overflow-wrap:anywhere}.record .note{margin-top:4px}.record-right{text-align:right;flex-shrink:0}.record-right strong{display:block;font-size:.87rem;margin-bottom:6px;font-variant-numeric:tabular-nums}
 .backup .actions{margin-top:20px}.fineprint,.empty,.status{color:var(--muted);font-size:.76rem}.fineprint{margin:12px 0 0}.empty{padding:20px;border:1px dashed var(--line);border-radius:12px}.status{min-height:1.4em;margin-top:8px;color:var(--mint)}footer{color:#8190aa;border-top:1px solid var(--line);margin-top:27px;padding-top:17px;font-size:.73rem}.warn{color:#ffc4a3}
 @media(max-width:740px){main{padding:14px 14px 36px}.hero{padding:30px 0 20px}.forms,.garage-grid{grid-template-columns:1fr}.stat{padding:13px}.stat strong{font-size:1.18rem}.stats{gap:7px}.header-tag{display:none}}@media(max-width:370px){.stats{grid-template-columns:1fr}.field-row{grid-template-columns:1fr}.record{align-items:start}.panel{padding:15px}}
+
+/* GarageLog 1.1: Safari/iPhone – Datumsfeld darf keine zweite Grid-Spalte überdecken. */
+@media (max-width: 680px) {
+  .field-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+  .field-row > .field { min-width: 0; }
+  input[type="date"] {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    min-inline-size: 0;
+  }
+}
 </style>
 </head>
 <body>
