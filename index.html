@@ -19,21 +19,25 @@ input,select,textarea{width:100%;min-width:0;border:1px solid var(--line);backgr
 .backup .actions{margin-top:20px}.fineprint,.empty,.status{color:var(--muted);font-size:.76rem}.fineprint{margin:12px 0 0}.empty{padding:20px;border:1px dashed var(--line);border-radius:12px}.status{min-height:1.4em;margin-top:8px;color:var(--mint)}footer{color:#8190aa;border-top:1px solid var(--line);margin-top:27px;padding-top:17px;font-size:.73rem}.warn{color:#ffc4a3}
 @media(max-width:740px){main{padding:14px 14px 36px}.hero{padding:30px 0 20px}.forms,.garage-grid{grid-template-columns:1fr}.stat{padding:13px}.stat strong{font-size:1.18rem}.stats{gap:7px}.header-tag{display:none}}@media(max-width:370px){.stats{grid-template-columns:1fr}.field-row{grid-template-columns:1fr}.record{align-items:start}.panel{padding:15px}}
 
-/* GarageLog 1.1: Safari/iPhone – Datumsfeld darf keine zweite Grid-Spalte überdecken. */
-@media (max-width: 680px) {
-  .field-row {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 12px;
-  }
-  .field-row > .field { min-width: 0; }
-  input[type="date"] {
-    display: block;
-    width: 100%;
-    min-width: 0;
-    max-width: 100%;
-    min-inline-size: 0;
-  }
+/* GarageLog 1.2: Kompakter zweispaltiger Aufbau auf Mobilgeräten.
+   Das native iOS-Datumsfeld bleibt bedienbar, hat aber eine kompakte visuelle Hülle. */
+.field-row > .field + .field{margin-top:0}
+.date-picker-shell{position:relative;display:flex;align-items:center;justify-content:space-between;gap:6px;width:100%;min-width:0;min-height:43px;border:1px solid var(--line);background:var(--input);border-radius:9px;padding:10px 11px;color:var(--white);font-size:.88rem;white-space:nowrap}
+.date-picker-shell:focus-within{border-color:var(--mint);box-shadow:0 0 0 2px #65e2b02b}
+.date-picker-shell input[type="date"]{position:absolute;inset:0;opacity:0;display:block;width:100%;height:100%;min-width:0;max-width:100%;padding:0;margin:0;border:0;cursor:pointer;font-size:16px}
+.date-picker-shell .date-display{min-width:0;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+.date-picker-shell .date-icon{font-size:1rem;flex-shrink:0;color:var(--muted)}
+@media (min-width:371px) and (max-width:740px){
+ .field-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .field-row>.field{min-width:0}
 }
+@media (max-width:740px){
+ .panel{padding:15px}
+ .desc{margin-bottom:10px}
+ .field-row+.field,.field+.field-row,.field+.field{margin-top:9px}
+ .primary{margin-top:12px}
+}
+
 </style>
 </head>
 <body>
@@ -45,7 +49,7 @@ input,select,textarea{width:100%;min-width:0;border:1px solid var(--line);backgr
 <section class="panel"><h2>Fahrzeug hinzufügen</h2><p class="desc">Beginne mit einem beliebigen Fahrzeug.</p>
 <form id="vehicleForm"><div class="field"><label for="vehicleName">Fahrzeugname</label><input id="vehicleName" name="name" placeholder="z. B. Polo 9N3 1.9 TDI" maxlength="100" required></div><div class="field-row" style="margin-top:11px"><div class="field"><label for="vehicleKm">Kilometerstand</label><input id="vehicleKm" type="number" name="km" placeholder="z. B. 322000" min="0" max="99999999" step="1" required></div><div class="field"><label for="vehicleNext">Nächster Ölwechsel bei km (optional)</label><input id="vehicleNext" type="number" name="next" placeholder="z. B. 330000" min="0" max="99999999" step="1"></div></div><button class="primary" type="submit">+ Fahrzeug speichern</button></form></section>
 <section class="panel"><h2>Wartung eintragen</h2><p class="desc">Halte Arbeiten und Kosten dauerhaft fest.</p>
-<form id="serviceForm"><div class="field"><label for="serviceVehicle">Fahrzeug</label><select id="serviceVehicle" required><option value="">Erst Fahrzeug hinzufügen</option></select></div><div class="field-row" style="margin-top:11px"><div class="field"><label for="serviceDate">Datum</label><input id="serviceDate" type="date" required></div><div class="field"><label for="serviceKm">Kilometerstand</label><input id="serviceKm" type="number" min="0" max="99999999" step="1" placeholder="z. B. 322000" required></div></div><div class="field-row" style="margin-top:11px"><div class="field"><label for="serviceType">Arbeit</label><select id="serviceType"><option>Ölwechsel</option><option>Inspektion</option><option>Bremsen</option><option>Reifen</option><option>HU / AU</option><option>Reparatur</option><option>Sonstiges</option></select></div><div class="field"><label for="serviceCost">Kosten in €</label><input id="serviceCost" type="number" min="0" max="99999999" step="0.01" inputmode="decimal" placeholder="0,00" required></div></div><div class="field" style="margin-top:11px"><label for="serviceNote">Notiz (optional)</label><textarea id="serviceNote" maxlength="1000" placeholder="z. B. Öl nach MB 229.52; Filter ersetzt"></textarea></div><button class="primary" type="submit">+ Wartung speichern</button></form></section>
+<form id="serviceForm"><div class="field"><label for="serviceVehicle">Fahrzeug</label><select id="serviceVehicle" required><option value="">Erst Fahrzeug hinzufügen</option></select></div><div class="field-row" style="margin-top:11px"><div class="field"><label for="serviceDate">Datum</label><div class="date-picker-shell"><span id="serviceDateText" class="date-display" aria-hidden="true">Datum wählen</span><span class="date-icon" aria-hidden="true">▦</span><input id="serviceDate" type="date" aria-label="Datum" required></div></div><div class="field"><label for="serviceKm">Kilometerstand</label><input id="serviceKm" type="number" min="0" max="99999999" step="1" placeholder="z. B. 322000" required></div></div><div class="field-row" style="margin-top:11px"><div class="field"><label for="serviceType">Arbeit</label><select id="serviceType"><option>Ölwechsel</option><option>Inspektion</option><option>Bremsen</option><option>Reifen</option><option>HU / AU</option><option>Reparatur</option><option>Sonstiges</option></select></div><div class="field"><label for="serviceCost">Kosten in €</label><input id="serviceCost" type="number" min="0" max="99999999" step="0.01" inputmode="decimal" placeholder="0,00" required></div></div><div class="field" style="margin-top:11px"><label for="serviceNote">Notiz (optional)</label><textarea id="serviceNote" maxlength="1000" placeholder="z. B. Öl nach MB 229.52; Filter ersetzt"></textarea></div><button class="primary" type="submit">+ Wartung speichern</button></form></section>
 </div>
 <section class="section"><div class="section-head"><h2>Meine Garage</h2><small>Kilometerstände &amp; Ölservice</small></div><div id="garage" class="garage-grid"><p class="empty">Noch keine Fahrzeuge vorhanden.</p></div></section>
 <section class="section"><div class="section-head"><h2>Wartungsverlauf</h2><small>Neueste zuerst</small></div><div id="history" class="records"><p class="empty">Noch keine Wartungen vorhanden.</p></div></section>
@@ -107,7 +111,11 @@ function render(){
  });
 }
 function todayISO(){const now=new Date();return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;}
+function updateDateLabel(){const value=$('serviceDate').value;$('serviceDateText').textContent=validDate(value)?formatDate(value):'Datum wählen';}
 $('serviceDate').value=todayISO();
+$('serviceDate').addEventListener('input',updateDateLabel);
+$('serviceDate').addEventListener('change',updateDateLabel);
+updateDateLabel();
 $('vehicleForm').addEventListener('submit',event=>{
  event.preventDefault();const name=$('vehicleName').value.trim(),km=Number($('vehicleKm').value),rawNext=$('vehicleNext').value.trim(),next=rawNext===''?null:Number(rawNext);
  if(!name||!validInt(km)||(next!==null&&!validInt(next))){alert('Bitte gültige Fahrzeugdaten eingeben.');return;}
@@ -116,7 +124,11 @@ $('vehicleForm').addEventListener('submit',event=>{
 $('serviceForm').addEventListener('submit',event=>{
  event.preventDefault();const vehicleId=$('serviceVehicle').value,date=$('serviceDate').value,km=Number($('serviceKm').value),type=$('serviceType').value,cost=Number($('serviceCost').value),note=$('serviceNote').value.trim();
  if(!db.vehicles.some(v=>v.id===vehicleId)||!validDate(date)||!validInt(km)||!validMoney(cost)){alert('Bitte gültige Wartungsdaten eingeben.');return;}
- db.services.push({id:id(),vehicleId,date,km,type,cost,note});persist();event.target.reset();$('serviceDate').value=todayISO();render();say('Wartung gespeichert.');
+ db.services.push({id:id(),vehicleId,date,km,type,cost,note});persist();event.target.reset();function updateDateLabel(){const value=$('serviceDate').value;$('serviceDateText').textContent=validDate(value)?formatDate(value):'Datum wählen';}
+$('serviceDate').value=todayISO();
+$('serviceDate').addEventListener('input',updateDateLabel);
+$('serviceDate').addEventListener('change',updateDateLabel);
+updateDateLabel();render();say('Wartung gespeichert.');
 });
 $('exportBtn').addEventListener('click',()=>{
  const file=new Blob([JSON.stringify({version:1,exportedAt:new Date().toISOString(),...db},null,2)],{type:'application/json'}),url=URL.createObjectURL(file),a=document.createElement('a');a.href=url;a.download='garagelog-backup-'+todayISO()+'.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);say('Backup erstellt. Bewahre die JSON-Datei sicher auf.');
