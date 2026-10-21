@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="GarageLog: Fahrzeugverwaltung mit E-Mail-Registrierung, privatem Cloud-Konto und Fahrzeugkostenübersicht.">
+<meta name="description" content="GarageLog: Fahrzeugverwaltung mit Cloud-Speicherung, Registrierung, Fahrzeugkosten und sicherer Kontolöschung.">
 <meta name="theme-color" content="#0b1222">
 <title>GarageLog – Deine Fahrzeuge. Dein Überblick.</title>
 <style>
@@ -59,6 +59,17 @@ button:disabled{opacity:.55;cursor:wait}
 .vehicle-expenses span{font-size:.73rem;color:var(--muted)}
 .vehicle-expenses strong{font-size:1rem;font-variant-numeric:tabular-nums}
 @media(max-width:740px){.auth-panel{padding:18px;margin:25px 0}.account-bar{font-size:.74rem}}
+
+/* GarageLog: sicheres Löschen des eigenen Kontos */
+.account-danger{border:1px solid #784253;background:linear-gradient(145deg,#2b2032,#151e31)}
+.account-danger .warning-text{color:#ffb2c0;font-size:.82rem;margin:8px 0 12px}
+.account-danger .danger-action{border:1px solid #e77789;background:#8c243f;color:#fff;font-weight:800;border-radius:9px;padding:11px 16px;min-height:44px}
+.account-danger .danger-action:hover{background:#a52d4a}
+.account-danger .small-btn{min-height:39px}
+.account-danger input{font-size:16px}
+.account-danger .field{margin-top:11px}
+.account-danger .actions{margin-top:14px}
+#deleteAccountStatus{overflow-wrap:anywhere;min-height:1.4em}
 </style>
 </head>
 <body>
@@ -100,6 +111,23 @@ button:disabled{opacity:.55;cursor:wait}
 <section class="section"><div class="section-head"><h2>Meine Garage</h2><small>Kilometerstände &amp; Ölservice</small></div><div id="garage" class="garage-grid"><p class="empty">Noch keine Fahrzeuge vorhanden.</p></div></section>
 <section class="section"><div class="section-head"><h2>Wartungsverlauf</h2><small>Neueste zuerst</small></div><div id="history" class="records"><p class="empty">Noch keine Wartungen vorhanden.</p></div></section>
 <section class="section backup"><div class="section-head"><h2>Datensicherung</h2><small>Zusätzliches Cloud-Backup</small></div><div class="actions"><button class="small-btn" id="exportBtn" type="button">Backup herunterladen (JSON)</button><button class="small-btn" id="importBtn" type="button">Backup importieren</button><button class="small-btn danger" id="clearBtn" type="button">Alle Daten löschen</button><input id="fileInput" type="file" accept=".json,application/json" hidden></div><p class="fineprint">Deine Daten werden nach bestätigten Änderungen in Supabase gespeichert. Löschen von Browserdaten kann dich abmelden, löscht aber nicht deine Cloud-Fahrzeuge. Lege trotzdem gelegentlich ein JSON-Backup an.</p><div class="status" id="status" aria-live="polite"></div></section>
+
+<section class="section" aria-labelledby="accountSettingsTitle">
+  <div class="section-head"><h2 id="accountSettingsTitle">Kontoeinstellungen</h2><small>Dein Benutzerkonto</small></div>
+  <div class="panel account-danger">
+    <h3 style="font-size:1rem;margin:0 0 5px">Konto dauerhaft löschen</h3>
+    <p class="desc">Damit werden dein GarageLog-Konto und alle zugehörigen Cloud-Fahrzeuge und Wartungen unwiderruflich gelöscht.</p>
+    <button id="openDeleteAccount" type="button" class="small-btn danger">Konto löschen …</button>
+    <form id="deleteAccountForm" hidden>
+      <p class="warning-text"><strong>Achtung:</strong> Sichere deine Daten vorher über „Backup herunterladen (JSON)“. Die Löschung kann nicht rückgängig gemacht werden.</p>
+      <div class="field"><label for="deleteAccountEmail">Angemeldete E-Mail-Adresse</label><input id="deleteAccountEmail" type="email" readonly autocomplete="off" aria-readonly="true"></div>
+      <div class="field"><label for="deleteAccountPassword">Aktuelles GarageLog-Passwort</label><input id="deleteAccountPassword" type="password" autocomplete="current-password" required></div>
+      <div class="field"><label for="deleteAccountConfirm">Zur Bestätigung <strong>KONTO LÖSCHEN</strong> eintippen</label><input id="deleteAccountConfirm" type="text" placeholder="KONTO LÖSCHEN" autocomplete="off" autocapitalize="characters" required></div>
+      <div class="actions"><button id="deleteAccountSubmit" class="danger-action" type="submit">Konto unwiderruflich löschen</button><button id="cancelDeleteAccount" type="button" class="small-btn">Abbrechen</button></div>
+      <p id="deleteAccountStatus" class="status" role="status" aria-live="polite"></p>
+    </form>
+  </div>
+</section>
 <footer>GarageLog · Gehostet mit GitHub Pages · Private Fahrzeugdaten in Supabase · E-Mail-Anmeldung</footer>
 </div>
 </main>
@@ -130,6 +158,7 @@ function authStatus(text, bad=false) {
   $('authStatus').classList.toggle('warn', bad);
 }
 function showAuth() {
+  if($('deleteAccountForm')) { $('deleteAccountForm').hidden=true; $('deleteAccountPassword').value=''; $('deleteAccountConfirm').value=''; $('openDeleteAccount').hidden=false; }
   $('authPanel').hidden = false;
   $('appContent').hidden = true;
   $('userActions').hidden = true;
@@ -359,6 +388,67 @@ $('clearBtn').addEventListener('click',async()=>{
  if(!confirm('Endgültig ALLE DEINE Cloud-Daten löschen?'))return;
  await mutation('Alle Cloud-Daten gelöscht',async()=>api.from('vehicles').delete().eq('user_id',user.id).select('id'));
 });
+
+// Konto löschen: Der Admin-Schlüssel befindet sich ausschließlich in der Supabase Edge Function.
+const deleteAccountStatus = (message,bad=false) => {
+  $('deleteAccountStatus').textContent=message;
+  $('deleteAccountStatus').classList.toggle('warn',bad);
+};
+$('openDeleteAccount').addEventListener('click',()=>{
+  $('deleteAccountForm').hidden=false;
+  $('openDeleteAccount').hidden=true;
+  $('deleteAccountEmail').value=user?.email||'';
+  deleteAccountStatus('');
+  $('deleteAccountPassword').focus();
+});
+$('cancelDeleteAccount').addEventListener('click',()=>{
+  $('deleteAccountForm').hidden=true;
+  $('openDeleteAccount').hidden=false;
+  $('deleteAccountPassword').value='';
+  $('deleteAccountConfirm').value='';
+  deleteAccountStatus('');
+});
+$('deleteAccountForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  if(!api||!user||busy)return;
+  const password=$('deleteAccountPassword').value;
+  const phrase=$('deleteAccountConfirm').value.trim();
+  if(phrase!=='KONTO LÖSCHEN'){
+    deleteAccountStatus('Bitte genau KONTO LÖSCHEN eingeben.',true);return;
+  }
+  if(!password){deleteAccountStatus('Bitte dein aktuelles Passwort eingeben.',true);return;}
+  const ok=confirm('Letzte Bestätigung: Dieses GarageLog-Konto und seine Cloud-Daten ENDGÜLTIG löschen?');
+  if(!ok)return;
+  const submit=$('deleteAccountSubmit');
+  submit.disabled=true;
+  deleteAccountStatus('Konto wird geprüft und gelöscht …');
+  try {
+    const {data,error}=await api.functions.invoke('delete-account',{
+      body:{password,confirmation:'DELETE_MY_ACCOUNT'}
+    });
+    if(error){
+      // FunctionsHttpError / non-2xx sometimes contains a JSON error body.
+      let message=error.message||'Unbekannter Fehler';
+      if(error.context && typeof error.context.json==='function'){
+        try{const response=await error.context.json(); if(response?.error)message=response.error;}catch(_){}
+      }
+      throw Error(message);
+    }
+    if(!data?.success)throw Error('Die Löschung wurde nicht bestätigt.');
+    try{await api.auth.signOut({scope:'local'});}catch(_){/* Token ist nach der Löschung ohnehin ungültig. */}
+    user=null;
+    db={vehicles:[],services:[]};
+    showAuth();
+    setAuthMode('login');
+    authStatus('Dein GarageLog-Konto wurde gelöscht. Die damit verbundenen Cloud-Fahrzeuge und Wartungen wurden entfernt.');
+  }catch(error){
+    deleteAccountStatus('Konto nicht gelöscht: '+failure(error),true);
+  }finally{
+    $('deleteAccountPassword').value='';
+    submit.disabled=false;
+  }
+});
+
 start();
 })();
 
