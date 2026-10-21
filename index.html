@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="GarageLog: Fahrzeugverwaltung mit privater Anmeldung und Cloud-Speicherung.">
+<meta name="description" content="GarageLog: Fahrzeugverwaltung mit E-Mail-Registrierung, privatem Cloud-Konto und Fahrzeugkostenübersicht.">
 <meta name="theme-color" content="#0b1222">
 <title>GarageLog – Deine Fahrzeuge. Dein Überblick.</title>
 <style>
@@ -50,6 +50,14 @@ input,select,textarea{width:100%;min-width:0;border:1px solid var(--line);backgr
 .account-bar .actions{margin-left:auto}
 .online-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--mint);margin-right:7px}
 button:disabled{opacity:.55;cursor:wait}
+/* Anmeldung / Registrierung */
+.auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:5px;border:1px solid var(--line);border-radius:12px;background:var(--input);margin:17px 0 19px}
+.auth-tab{border:0;background:transparent;color:var(--muted);font-weight:700;padding:11px 10px;border-radius:9px;min-width:0}
+.auth-tab[aria-selected="true"]{background:#27435a;color:var(--white)}
+.auth-panel .info{color:var(--muted);font-size:.8rem;margin:9px 0}
+.vehicle-expenses{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;border-top:1px solid var(--line);padding:11px 0 12px;margin-top:2px}
+.vehicle-expenses span{font-size:.73rem;color:var(--muted)}
+.vehicle-expenses strong{font-size:1rem;font-variant-numeric:tabular-nums}
 @media(max-width:740px){.auth-panel{padding:18px;margin:25px 0}.account-bar{font-size:.74rem}}
 </style>
 </head>
@@ -59,14 +67,25 @@ button:disabled{opacity:.55;cursor:wait}
 
 <section id="authPanel" class="panel auth-panel">
   <h2>Deine Garage. Überall verfügbar.</h2>
-  <p class="desc">Melde dich mit dem GarageLog-Konto an, das du in Supabase erstellt hast. Nicht mit dem GitHub-Passwort.</p>
-  <form id="authForm">
+  <p class="desc">Dein privates Fahrzeugkonto mit Cloud-Speicherung.</p>
+  <div class="auth-tabs" role="tablist" aria-label="Kontozugang">
+    <button id="loginTab" type="button" class="auth-tab" role="tab" aria-selected="true" aria-controls="authForm">Anmelden</button>
+    <button id="registerTab" type="button" class="auth-tab" role="tab" aria-selected="false" aria-controls="registerForm">Registrieren</button>
+  </div>
+  <form id="authForm" role="tabpanel" aria-labelledby="loginTab">
     <div class="field"><label for="authEmail">E-Mail-Adresse</label><input id="authEmail" type="email" autocomplete="username" inputmode="email" required placeholder="deine@email.de"></div>
     <div class="field"><label for="authPassword">GarageLog-Passwort</label><input id="authPassword" type="password" autocomplete="current-password" required placeholder="Dein Passwort"></div>
     <button id="authSubmit" class="primary" type="submit">Anmelden</button>
   </form>
+  <form id="registerForm" role="tabpanel" aria-labelledby="registerTab" hidden>
+    <div class="field"><label for="registerEmail">E-Mail-Adresse</label><input id="registerEmail" type="email" autocomplete="email" inputmode="email" required placeholder="deine@email.de"></div>
+    <div class="field"><label for="registerPassword">Neues Passwort (mindestens 10 Zeichen)</label><input id="registerPassword" type="password" autocomplete="new-password" minlength="10" required placeholder="Sicheres Passwort wählen"></div>
+    <div class="field"><label for="registerConfirm">Passwort wiederholen</label><input id="registerConfirm" type="password" autocomplete="new-password" minlength="10" required placeholder="Passwort bestätigen"></div>
+    <button id="registerSubmit" class="primary" type="submit">Konto erstellen</button>
+    <p class="info">Nach der Registrierung bestätigst du deine E-Mail-Adresse über den Link in deiner E-Mail. Dafür muss der Betreiber den E-Mail-Versand in Supabase eingerichtet haben.</p>
+  </form>
   <p id="authStatus" class="status" role="status" aria-live="polite">Verbindung wird hergestellt …</p>
-  <p class="fineprint">Neue Benutzer werden derzeit im Supabase-Dashboard erstellt. Die Cloud erfordert eine Internetverbindung.</p>
+  <p class="fineprint">Jedes Konto hat eigene, durch RLS geschützte Fahrzeugdaten. Für die Anmeldung ist eine Internetverbindung erforderlich.</p>
 </section>
 <div id="userActions" class="account-bar" hidden><span><span class="online-dot"></span><span id="syncState">Cloud verbunden</span> · <span id="signedInAs"></span></span><div class="actions"><button class="small-btn" type="button" id="refreshBtn">Aktualisieren</button><button class="small-btn" type="button" id="logoutBtn">Abmelden</button></div></div>
 <div id="appContent" hidden>
@@ -95,6 +114,9 @@ const PUBLISHABLE_KEY = 'sb_publishable_vktprtU-EcvbuqZ04rb-9A_s96MVY0X';
 const $ = id => document.getElementById(id);
 const nf = new Intl.NumberFormat('de-DE', {maximumFractionDigits: 0});
 const eur = new Intl.NumberFormat('de-DE', {style:'currency',currency:'EUR'});
+// Muss in Supabase unter Authentication → URL Configuration freigegeben sein.
+const SITE_URL = 'https://ec2528.github.io/Garageblog/';
+function sumCosts(items){return items.reduce((cents,s)=>cents+Math.round(s.cost*100),0)/100;}
 let api, user = null;
 let db = {vehicles: [], services: []};
 let busy = false;
@@ -113,6 +135,16 @@ function showAuth() {
   $('userActions').hidden = true;
   $('authPassword').value = '';
 }
+function setAuthMode(mode){
+  const registering=mode==='register';
+  $('authForm').hidden=registering;
+  $('registerForm').hidden=!registering;
+  $('loginTab').setAttribute('aria-selected',String(!registering));
+  $('registerTab').setAttribute('aria-selected',String(registering));
+  authStatus(registering?'Erstelle dein kostenloses GarageLog-Konto.':'Melde dich mit deinem GarageLog-Konto an.');
+}
+$('loginTab').addEventListener('click',()=>setAuthMode('login'));
+$('registerTab').addEventListener('click',()=>setAuthMode('register'));
 function showApp() {
   $('authPanel').hidden = true;
   $('appContent').hidden = false;
@@ -139,7 +171,7 @@ function showError(label,e){setStatus(label+': '+failure(e)+'. Bitte Verbindung 
 function render(){
  $('vehicleCount').textContent=nf.format(db.vehicles.length);
  $('serviceCount').textContent=nf.format(db.services.length);
- $('costSum').textContent=eur.format(db.services.reduce((total,s)=>total+s.cost,0));
+ $('costSum').textContent=eur.format(sumCosts(db.services));
  const before=$('serviceVehicle').value;
  $('serviceVehicle').replaceChildren();
  if(!db.vehicles.length)$('serviceVehicle').add(new Option('Erst Fahrzeug hinzufügen',''));
@@ -152,7 +184,11 @@ function render(){
    const dist=make('div','distance');dist.append(make('strong','km',nf.format(v.km)+' km'));
    if(v.next===null)dist.append(make('span','pill neutral','Öltermin nicht erfasst'));
    else {const left=v.next-v.km;dist.append(make('span','pill'+(left<=0?' due':''),left>0?nf.format(left)+' km bis Ölwechsel':left===0?'Ölwechsel jetzt fällig':nf.format(-left)+' km überfällig'));}
-   card.append(dist);const buttons=make('div','actions');
+   card.append(dist);
+   const costs=make('div','vehicle-expenses');
+   costs.append(make('span','', 'Erfasste Wartungs- & Reparaturkosten'),make('strong','',eur.format(sumCosts(db.services.filter(s=>s.vehicleId===v.id)))));
+   card.append(costs);
+   const buttons=make('div','actions');
    buttons.append(button('km aktualisieren',async()=>{
      const answer=prompt('Neuer Kilometerstand für '+v.name+':',String(v.km));if(answer===null)return;
      const raw=answer.trim(), km=Number(raw);if(!/^\d+$/.test(raw)||!validInt(km)){alert('Bitte gültigen Kilometerstand eingeben.');return;}
@@ -236,6 +272,31 @@ async function start() {
     else {showAuth();authStatus('Bitte mit deinem bereits angelegten GarageLog-Konto anmelden.');}
   }catch(e){showAuth();authStatus('Verbindung zu Supabase fehlgeschlagen: '+failure(e),true);}
 }
+$('registerForm').addEventListener('submit',async e=>{
+  e.preventDefault();if(!api)return;
+  const email=$('registerEmail').value.trim();
+  const password=$('registerPassword').value;
+  const confirmation=$('registerConfirm').value;
+  if(password!==confirmation){authStatus('Die beiden Passwörter stimmen nicht überein.',true);return;}
+  if(password.length<10){authStatus('Bitte ein Passwort mit mindestens 10 Zeichen wählen.',true);return;}
+  const btn=$('registerSubmit');btn.disabled=true;authStatus('Konto wird erstellt …');
+  try{
+    const result=await api.auth.signUp({email,password,options:{emailRedirectTo:SITE_URL}});
+    if(result.error)throw result.error;
+    $('registerPassword').value='';$('registerConfirm').value='';
+    if(result.data?.session && result.data?.user){
+      user=result.data.user;showApp();setStatus('Registrierung abgeschlossen. Cloud-Daten werden geladen …');
+      if(!await loadCloud()){showAuth();authStatus('Konto erstellt, aber Cloud-Daten nicht erreichbar: '+lastCloudError,true);}
+    }else{
+      authStatus('Registrierung angefragt. Falls die Adresse neu ist, prüfe dein E-Mail-Postfach und bestätige sie über den Link. Danach hier anmelden.');
+    }
+  }catch(error){
+    const message=failure(error);
+    if(/not authorized|sending confirmation email|smtp|rate limit/i.test(message)){
+      authStatus('E-Mail-Versand derzeit nicht eingerichtet oder begrenzt ('+message+'). In Supabase muss der Betreiber einen eigenen SMTP-Dienst konfigurieren.',true);
+    }else authStatus('Registrierung fehlgeschlagen: '+message,true);
+  }finally{btn.disabled=false;}
+});
 $('authForm').addEventListener('submit',async e=>{
   e.preventDefault();if(!api)return;
   const email=$('authEmail').value.trim(),password=$('authPassword').value;
